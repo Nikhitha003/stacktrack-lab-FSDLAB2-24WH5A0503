@@ -7,7 +7,12 @@ function Home() {
   const [keyword, setKeyword] = useState('');
   const [tasks, setTasks] = useState([]);
 
+  // Handle search button click
   const handleSearch = async () => {
+    if (!keyword.trim()) {
+      alert("Please enter a keyword");
+      return;
+    }
     try {
       const res = await fetch(`/api/tasks?search=${keyword}`);
       const data = await res.json();
@@ -20,6 +25,7 @@ function Home() {
     }
   };
 
+  // Load tasks if search param exists in URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('search');
@@ -47,13 +53,17 @@ function Home() {
       />
       <button onClick={handleSearch}>Search</button>
 
-      <ul>
-        {tasks.map((task) => (
-          <li key={task._id}>
-            <strong>{task.title}</strong> - {task.description} ({task.status})
-          </li>
-        ))}
-      </ul>
+      {tasks.length === 0 ? (
+        <p>No tasks found</p>
+      ) : (
+        <ul>
+          {tasks.map((task) => (
+            <li key={task._id}>
+              <strong>{task.title}</strong> - {task.description} ({task.status})
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
