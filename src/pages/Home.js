@@ -6,35 +6,46 @@ const LAB_ID = 'FSDLAB2';
 function Home() {
   const [keyword, setKeyword] = useState('');
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // Handle search button click
+  
   const handleSearch = async () => {
     if (!keyword.trim()) {
       alert("Please enter a keyword");
       return;
     }
     try {
+      setLoading(true);
       const res = await fetch(`/api/tasks?search=${keyword}`);
       const data = await res.json();
       setTasks(data);
+      setLoading(false);
 
-      // Reflect keyword in URL query parameter
+      
       window.history.pushState({}, '', `?search=${keyword}`);
     } catch (err) {
       console.error('Error fetching tasks:', err);
+      setLoading(false);
     }
   };
 
-  // Load tasks if search param exists in URL
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('search');
     if (q) {
       setKeyword(q);
+      setLoading(true);
       fetch(`/api/tasks?search=${q}`)
         .then((res) => res.json())
-        .then((data) => setTasks(data))
-        .catch((err) => console.error('Error fetching tasks:', err));
+        .then((data) => {
+          setTasks(data);
+          setLoading(false);
+        })
+        .catch((err) => {
+          console.error('Error fetching tasks:', err);
+          setLoading(false);
+        });
     }
   }, []);
 
@@ -50,10 +61,15 @@ function Home() {
         value={keyword}
         onChange={(e) => setKeyword(e.target.value)}
         placeholder="Enter keyword"
+        style={{ padding: '8px', marginRight: '8px' }}
       />
-      <button onClick={handleSearch}>Search</button>
+      <button onClick={handleSearch} style={{ padding: '8px 12px' }}>
+        Search
+      </button>
 
-      {tasks.length === 0 ? (
+      {loading ? (
+        <p>Searching...</p>
+      ) : tasks.length === 0 ? (
         <p>No tasks found</p>
       ) : (
         <ul>
